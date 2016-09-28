@@ -55,15 +55,47 @@
 
 ;;;; CONSTRUCTORS
 
+(declaim (ftype (sfunction ((integer 2 4)) *) alloc-vecn)
+         (inline alloc-vecn))
+(defun alloc-vecn (size)
+  (make-array size :element-type 'single-float :initial-element 0.0))
+
+(define-compiler-macro vecn (&rest elts)
+  `(make-array ,(length elts) :element-type 'single-float :initial-contents (list ,@elts)))
+    
 (declaim (ftype (sfunction () vec) alloc-vec))
 (define-alloc-fun alloc-vec ()
   "Allocate a zero-initialized VEC."
-  (make-array 3 :element-type 'single-float :initial-element 0.0))
+  (alloc-vecn 3))
 
 (declaim (ftype (sfunction (single-float single-float single-float) vec) vec))
 (define-alloc-fun vec (x y z)
   "Allocate a 3d vector [X, Y, Z]."
-  (make-array 3 :element-type 'single-float :initial-contents (list x y z)))
+  (vecn x y z))
+
+
+(declaim (ftype (sfunction () vec2) alloc-vec2))
+(define-alloc-fun alloc-vec2 ()
+  "Allocate a zero-initialized VEC."
+  (alloc-vecn 2))
+
+(declaim (ftype (sfunction (single-float single-float) vec2) vec2))
+(define-alloc-fun vec2 (x y)
+  "Allocate a 3d vector [X, Y]."
+  (vecn x y))
+
+
+(declaim (ftype (sfunction () vec4) alloc-vec4))
+(define-alloc-fun alloc-vec4 ()
+  "Allocate a zero-initialized VEC."
+  (alloc-vecn 4))
+
+(declaim (ftype (sfunction (single-float single-float single-float single-float) vec4) vec4))
+(define-alloc-fun vec4 (x y z w)
+  "Allocate a 3d vector [X, Y, Z, W]."
+  (vecn x y z w))
+
+
 
 ;;;; COPYING
 

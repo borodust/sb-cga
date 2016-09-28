@@ -51,6 +51,9 @@
 ;;;;
 ;;;;
 
+
+;;; 3-element vector routines
+
 (defknown %vec= (vec vec) boolean
     (any #+sb-cga-sse2 always-translatable))
 
@@ -173,3 +176,114 @@
 (defknown %%adjust-vec/2 (vec vec single-float) vec
     (any #+sb-cga-sse2 always-translatable)
   :result-arg 1)
+
+
+;;; 2-element vector routines
+
+(defknown %copy-vec2 (vec2 vec2) vec2
+    (any)
+  :result-arg 0)
+
+(defknown %vec2+ (vec2 vec2 vec2) vec2
+    (any)
+  :result-arg 0)
+
+(defknown %%vec2+/1 (vec2 vec2) vec2
+    (any #+sb-cga-sse2 always-translatable)
+  :result-arg 0)
+
+(defknown %vec2- (vec2 vec2 vec2) vec2
+    (any)
+  :result-arg 0)
+
+(defknown %%vec2-/1 (vec2 vec2) vec2
+    (any #+sb-cga-sse2 always-translatable)
+  :result-arg 0)
+
+(defknown %vec2* (vec2 vec2 single-float) vec2
+    (any)
+  :result-arg 0)
+
+(defknown %%vec2*/1 (vec2 single-float) vec2
+    (any #+sb-cga-sse2 always-translatable)
+  :result-arg 0)
+
+(defknown %vec2/ (vec2 vec2 single-float) vec2
+    (any)
+  :result-arg 0)
+
+(defknown %%vec2//1 (vec2 single-float) vec2
+    (any #+sb-cga-sse2 always-translatable)
+  :result-arg 0)
+
+(defknown %vec2.* (vec2 vec2) single-float
+    (any #+sb-cga-sse2 always-translatable))
+
+(defknown %vec2x* (vec2 vec2 vec2) vec2
+    (any)
+  :result-arg 0)
+
+(defknown %vec2-length (vec2) single-float
+    (any #+sb-cga-sse2 always-translatable))
+
+(defknown %normalize-vec2 (vec2 vec2) vec2 (any)
+  :result-arg 0)
+
+(defknown %%normalize-vec2/1 (vec2) vec2
+    (any #+sb-cga-sse2 always-translatable)
+  :result-arg 0)
+
+;;; 4-element vector routines
+
+(defknown %copy-vec4 (vec4 vec4) vec4
+    (any)
+  :result-arg 0)
+
+(defknown %vec4+ (vec4 vec4 vec4) vec4
+    (any)
+  :result-arg 0)
+
+(defknown %%vec4+/1 (vec4 vec4) vec4
+    (any #+sb-cga-sse2 always-translatable)
+  :result-arg 0)
+
+(defknown %vec4- (vec4 vec4 vec4) vec4
+    (any)
+  :result-arg 0)
+
+(defknown %%vec4-/1 (vec4 vec4) vec4
+    (any #+sb-cga-sse2 always-translatable)
+  :result-arg 0)
+
+(defknown %vec4* (vec4 vec4 single-float) vec4
+    (any)
+  :result-arg 0)
+
+(defknown %%vec4*/1 (vec4 single-float) vec4
+    (any #+sb-cga-sse2 always-translatable)
+  :result-arg 0)
+
+(defknown %vec4/ (vec4 vec4 single-float) vec4
+    (any)
+  :result-arg 0)
+
+(defknown %%vec4//1 (vec4 single-float) vec4
+    (any #+sb-cga-sse2 always-translatable)
+  :result-arg 0)
+
+(defknown %vec4.* (vec4 vec4) single-float
+    (any #+sb-cga-sse2 always-translatable))
+
+(defknown %vec4x* (vec4 vec4 vec4) vec4
+    (any)
+  :result-arg 0)
+
+(defknown %vec4-length (vec4) single-float
+    (any #+sb-cga-sse2 always-translatable))
+
+(defknown %normalize-vec4 (vec4 vec4) vec4 (any)
+  :result-arg 0)
+
+(defknown %%normalize-vec4/1 (vec4) vec4
+    (any #+sb-cga-sse2 always-translatable)
+  :result-arg 0)

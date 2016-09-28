@@ -34,9 +34,18 @@
 
 ;;; VECTOR TYPE
 
+(deftype vec2 ()
+  "A 2d vector of single floats."
+  `(simple-array single-float (2)))
+
 (deftype vec ()
   "A 3d vector of single floats."
   `(simple-array single-float (3)))
+
+(deftype vec4 ()
+  "A 4d vector of single floats."
+  `(simple-array single-float (4)))
+
 
 ;;; MATRIX TYPE
 

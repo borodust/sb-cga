@@ -148,7 +148,7 @@
 
 #+sb-cga-sse2
 (define-vop (%copy-vec)
-  (:translate %copy-vec)
+  (:translate %copy-vec %copy-vec2 %copy-vec4)
   (:policy :fast-safe)
   (:args (result-vector :scs (descriptor-reg) :target result)
          (vector :scs (descriptor-reg)))
@@ -165,7 +165,7 @@
 
 #+sb-cga-sse2
 (define-vop (%vec+)
-  (:translate %vec+)
+  (:translate %vec+ %vec2+ %vec4+)
   (:policy :fast-safe)
   (:args (result-vector :scs (descriptor-reg) :target result)
          (vector1 :scs (descriptor-reg))
@@ -182,9 +182,9 @@
     (move result result-vector)))
 
 #+sb-cga-sse2
-(macrolet ((def (name target1 target2 result)
+(macrolet ((def (name target1 target2 result &rest aliases)
              `(define-vop (,name)
-                (:translate ,name)
+                (:translate ,name ,@aliases)
                 (:policy :fast-safe)
                 (:args (vector1 :scs (descriptor-reg) ,@target1)
                        (vector2 :scs (descriptor-reg) ,@target2))
@@ -197,14 +197,14 @@
                   (inst addps tmp (ea-for-slice vector2))
                   (store-slice tmp ,result)
                   (move result ,result)))))
-  (def %%vec+/1 (:target result) () vector1)
+  (def %%vec+/1 (:target result) () vector1 %%vec2+/1 %%vec4+/1)
   (def %%vec+/2 () (:target result) vector2))
 
 ;;;; VECTOR SUBSTRACTION
 
 #+sb-cga-sse2
 (define-vop (%vec-)
-  (:translate %vec-)
+  (:translate %vec- %vec2- %vec4-)
   (:policy :fast-safe)
   (:args (result-vector :scs (descriptor-reg) :target result)
          (vector1 :scs (descriptor-reg))
@@ -221,9 +221,9 @@
     (move result result-vector)))
 
 #+sb-cga-sse2
-(macrolet ((def (name target1 target2 result)
+(macrolet ((def (name target1 target2 result &rest aliases)
              `(define-vop (,name)
-                (:translate ,name)
+                (:translate ,name ,@aliases)
                 (:policy :fast-safe)
                 (:args (vector1 :scs (descriptor-reg) ,@target1)
                        (vector2 :scs (descriptor-reg) ,@target2))
@@ -236,14 +236,14 @@
                   (inst subps tmp (ea-for-slice vector2))
                   (store-slice tmp ,result)
                   (move result ,result)))))
-  (def %%vec-/1 (:target result) () vector1)
+  (def %%vec-/1 (:target result) () vector1 %%vec2-/1 %%vec4-/1)
   (def %%vec-/2 () (:target result) vector2))
 
 ;;;; VECTOR/SCALAR MULTIPLICATION
 
 #+sb-cga-sse2
 (define-vop (%vec*)
-  (:translate %vec*)
+  (:translate %vec* %vec2* %vec4*)
   (:policy :fast-safe)
   (:args (result-vector :scs (descriptor-reg) :target result)
          (vector :scs (descriptor-reg))
@@ -261,7 +261,7 @@
 
 #+sb-cga-sse2
 (define-vop (%%vec*/1)
-  (:translate %%vec*/1)
+  (:translate %%vec*/1 %%vec2*/1 %%vec4*/1)
   (:policy :fast-safe)
   (:args (vector :scs (descriptor-reg) :target result)
          (f :scs (single-reg) :target result))
@@ -279,7 +279,7 @@
 
 #+sb-cga-sse2
 (define-vop (%vec/)
-  (:translate %vec/)
+  (:translate %vec/ %vec2/ %vec4/)
   (:policy :fast-safe)
   (:args (result-vector :scs (descriptor-reg) :target result)
          (vector :scs (descriptor-reg))
@@ -300,7 +300,7 @@
 
 #+sb-cga-sse2
 (define-vop (%%vec//1)
-  (:translate %%vec//1)
+  (:translate %%vec//1 %%vec2//1 %%vec4//1)
   (:policy :fast-safe)
   (:args (vector :scs (descriptor-reg) :target result)
          (f :scs (single-reg) :target floats))
@@ -320,27 +320,28 @@
 
 #+sb-cga-sse2
 (define-vop (%dot-product)
-  (:translate %dot-product)
+  (:translate %dot-product %vec2.* %vec4.*)
   (:policy :fast-safe)
   (:args (vector1 :scs (descriptor-reg))
          (vector2 :scs (descriptor-reg)))
   (:arg-types * *)
   (:results (result :scs (single-reg)))
   (:result-types single-float)
-  (:temporary (:sc single-reg) tmp2)
-  (:temporary (:sc single-reg) tmp3)
+  (:temporary (:sc single-reg) tmp)
   (:generator 10
-    ;; Load elements of VECTOR1
-    (inst movss result (ea-for-data vector1 0))
-    (inst movss tmp2 (ea-for-data vector1 1))
-    (inst movss tmp3 (ea-for-data vector1 2))
-    ;; Multiply by elements of VECTOR2
-    (inst mulss result (ea-for-data vector2 0))
-    (inst mulss tmp2 (ea-for-data vector2 1))
-    (inst mulss tmp3 (ea-for-data vector2 2))
-    ;; Add
-    (inst addss result tmp2)
-    (inst addss result tmp3)))
+              ;; Load elements of VECTOR1
+              (load-slice result vector1)
+              ;; multiply each elt
+              (inst mulps result (ea-for-slice vector2))
+              (inst movaps tmp result)
+              ;; rotate copy ef the multiplication result and sum vectors each time
+              (inst shufps tmp tmp #b10010011)
+              (inst addps result tmp)
+              (inst shufps tmp tmp #b10010011)
+              (inst addps result tmp)
+              (inst shufps tmp tmp #b10010011)
+              (inst addps result tmp))) ; all 4  elts of result should contain dot product now
+
 
 ;;;; HADAMARD PRODUCT
 
@@ -385,7 +386,7 @@
 
 #+sb-cga-sse2
 (define-vop (%vec-length)
-  (:translate %vec-length)
+  (:translate %vec-length %vec2-length %vec4-length)
   (:policy :fast-safe)
   (:args (vector :scs (descriptor-reg)))
   (:results (result :scs (single-reg)))
@@ -408,7 +409,7 @@
 
 #+sb-cga-sse2
 (define-vop (%normalize)
-  (:translate %normalize)
+  (:translate %normalize %normalize-vec2 %normalize-vec4)
   (:policy :fast-safe)
   (:args (result-vector :scs (descriptor-reg) :target result)
          (vector :scs (descriptor-reg)))
